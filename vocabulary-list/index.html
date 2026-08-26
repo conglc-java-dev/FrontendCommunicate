@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="vi">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kho từ vựng · English Daily</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header class="topbar"><a class="brand" href="../dashboard/"><span class="brand-mark">E</span><span class="brand-name">English Daily</span></a><nav class="nav"><a href="../dashboard/">⌂ Tổng quan</a><a href="../flashcard/">◇ Học từ</a><a class="active" href="../vocabulary-list/">▤ Thư viện</a><a href="../statistics/">↗ Thống kê</a></nav><div class="user-chip"><span class="avatar">L</span><span>Local learner</span></div></header>
+
+<main class="library-page">
+  <section class="library-heading"><div><p class="eyebrow">Bộ thẻ từ vựng</p><h1>Kho từ vựng</h1><p class="subtitle">Tạo chủ đề theo cách bạn muốn, thêm các bộ con và nhập từ trực tiếp từ Excel.</p></div><div class="heading-actions"><button class="btn btn-secondary" id="openImport">⇧ Nhập Excel</button><button class="btn btn-primary" id="createRoot">＋ Tạo chủ đề</button></div></section>
+  <section class="library-stats" id="libraryStats"><div class="loader"></div></section>
+  <label class="deck-search"><span>⌕</span><input id="deckSearch" placeholder="Tìm chủ đề: chào hỏi, cảm ơn, xin lỗi..."></label>
+  <section id="libraryContent"><div class="loader"></div></section>
+</main>
+
+<dialog id="topicDialog"><form id="topicForm"><div class="dialog-head"><div><p class="eyebrow">Sắp xếp thư viện</p><h2 id="topicDialogTitle">Tạo chủ đề mới</h2></div><button type="button" class="close" data-close="topicDialog">×</button></div><div class="field"><label for="topicTitle">Tên chủ đề</label><input class="input" id="topicTitle" maxlength="160" required placeholder="Ví dụ: Từ vựng công việc"></div><div class="field"><label for="topicDescription">Mô tả ngắn</label><textarea class="input" id="topicDescription" maxlength="500" placeholder="Nội dung chính của chủ đề này..."></textarea></div><div class="form-row"><div class="field"><label for="topicLevel">Trình độ</label><select class="input" id="topicLevel"><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option></select></div><div class="field"><label for="topicParent">Nằm trong chủ đề</label><select class="input" id="topicParent"><option value="">Không có · chủ đề lớn</option></select></div></div><button class="btn btn-primary submit" type="submit">Tạo chủ đề</button></form></dialog>
+
+<dialog id="importDialog"><form id="importForm"><div class="dialog-head"><div><p class="eyebrow">Nhập hàng loạt</p><h2>Nhập từ vựng từ Excel</h2></div><button type="button" class="close" data-close="importDialog">×</button></div><div class="field"><label for="importDeck">Nhập vào chủ đề</label><select class="input" id="importDeck" required></select></div><label class="dropzone" id="dropzone" for="file"><span>⇧</span><strong>Kéo tệp vào đây hoặc bấm để chọn</strong><small>.xlsx · tối đa 5 MB · 7 cột theo mẫu</small><input id="file" type="file" accept=".xlsx" hidden></label><div class="file-row" id="fileRow" hidden><div><strong id="fileName"></strong><small id="fileSize"></small></div><button type="button" class="btn btn-secondary" id="removeFile">Đổi tệp</button></div><p class="format-note">Word · Part of Speech · UK IPA · US IPA · Meaning · English Example · Vietnamese Example</p><button class="btn btn-primary submit" id="importButton" type="submit" disabled>Nhập từ vựng</button><section id="importResult"></section></form></dialog>
+
+<script type="module" src="script.js"></script></body></html>

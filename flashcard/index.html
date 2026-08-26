@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Học từ · English Daily</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="../dashboard/"><span class="brand-mark">E</span><span class="brand-name">English Daily</span></a>
+  <nav class="nav">
+    <a href="../dashboard/">⌂ Tổng quan</a>
+    <a class="active" href="../flashcard/">◇ Học từ</a>
+    <a href="../vocabulary-list/">▤ Thư viện</a>
+    <a href="../statistics/">↗ Thống kê</a>
+  </nav>
+  <div class="user-chip"><span class="avatar">L</span><span>Local learner</span></div>
+</header>
+
+<main class="study-shell">
+  <div class="study-top card hidden" id="studyTop">
+    <div><strong id="counter">0 / 0</strong><div class="progress"><span id="progressBar"></span></div></div>
+    <div class="modes" role="group" aria-label="Hướng học">
+      <button data-mode="ENGLISH_TO_VIETNAMESE">Anh → Việt</button>
+      <button data-mode="VIETNAMESE_TO_ENGLISH">Việt → Anh</button>
+      <button class="active" data-mode="MIXED">Xen kẽ</button>
+    </div>
+    <button id="exitStudy" class="exit">Thoát</button>
+  </div>
+  <section id="learningArea"><div class="loader"></div></section>
+</main>
+<script type="module" src="script.js"></script>
+</body>
+</html>
