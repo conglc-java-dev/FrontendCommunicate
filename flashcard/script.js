@@ -7,6 +7,8 @@ const bar = document.querySelector('#progressBar');
 const query = new URLSearchParams(location.search);
 const deckSlug = query.get('deck');
 const deckTitle = query.get('title') || 'Bộ thẻ đã chọn';
+const requestedBack = query.get('back');
+const deckBack = requestedBack?.startsWith('../vocabulary-detail/') ? requestedBack : '../vocabulary-list/';
 let mode = 'MIXED';
 let sessionType = deckSlug ? 'deck' : null;
 let cards = [];
@@ -29,7 +31,7 @@ document.querySelectorAll('.modes button').forEach(button => button.addEventList
 }));
 
 document.querySelector('#exitStudy').addEventListener('click', () => {
-  if (sessionType === 'deck') location.href = '../vocabulary-list/';
+  if (sessionType === 'deck') location.href = deckBack;
   else location.href = '../flashcard/';
 });
 
@@ -168,7 +170,7 @@ function summary() {
   area.innerHTML = `<section class="card summary"><div class="summary-icon">🎉</div><p class="eyebrow">Hoàn thành phiên học</p>
     <h2>Làm tốt lắm!</h2><p class="subtitle">Bạn vừa hoàn thành ${cards.length} lượt học. Hệ thống đã lên lịch ôn tiếp theo.</p>
     <div class="summary-grid"><div><strong>${scores.FORGOT}</strong><span>Quên</span></div><div><strong>${scores.HARD}</strong><span>Khó</span></div><div><strong>${scores.REMEMBERED}</strong><span>Đã nhớ</span></div><div><strong>${scores.TOO_EASY}</strong><span>Quá dễ</span></div></div>
-    <a class="btn btn-primary" href="${sessionType === 'deck' ? '../vocabulary-list/' : '../flashcard/'}">Hoàn tất</a></section>`;
+    <a class="btn btn-primary" href="${sessionType === 'deck' ? deckBack : '../flashcard/'}">Hoàn tất</a></section>`;
 }
 
 document.addEventListener('keydown', event => {

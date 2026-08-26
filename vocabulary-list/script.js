@@ -16,24 +16,24 @@ function renderStats() {
   stats.innerHTML = items.map(([label, value], index) => `<article class="stat ${index === 3 ? 'learned' : ''}"><span>${label}</span><strong>${value}</strong></article>`).join('');
 }
 
-function deckCard(deck) {
-  const action = deck.containsCards
-    ? `<a class="study-link" href="../flashcard/?deck=${encodeURIComponent(deck.slug)}&title=${encodeURIComponent(deck.title)}">Học bộ thẻ →</a>`
-    : `<span class="empty-deck">Chưa có từ</span>`;
-  return `<article class="deck-card"><div class="deck-top"><span class="level">${esc(deck.level)}</span><button class="mini-action" data-create-child="${deck.id}" title="Tạo chủ đề con">＋ Chủ đề con</button></div><h3>${esc(deck.title)}</h3><p>${esc(deck.description)}</p><div class="deck-count"><strong>${deck.totalCards} thẻ</strong><span>${deck.learnedCount} đã học</span></div><div class="deck-progress"><span style="width:${deck.progressPercent}%"></span></div><div class="deck-footer"><span class="${deck.dueCount ? 'due' : 'ready'}">${deck.dueCount ? `↻ ${deck.dueCount} đến hạn` : '● Sẵn sàng'}</span>${action}</div></article>`;
-}
-
 function descendants(topic) { return topic.children.flatMap(child => [child, ...descendants(child)]); }
 function matches(node, keyword) { return `${node.title} ${node.description} ${node.level}`.toLocaleLowerCase('vi').includes(keyword); }
+
+function topicCard(topic) {
+  const childCount = descendants(topic).length;
+  return `<article class="topic-card">
+    <div class="topic-card-top"><div class="level-group"><span class="level">${esc(topic.level)}</span></div><button class="danger-icon" data-delete-topic="${topic.id}" data-title="${esc(topic.title)}" title="Xóa chủ đề">⌫</button></div>
+    <h2>${esc(topic.title)}</h2><p>${esc(topic.description)}</p>
+    <div class="topic-count"><strong>${childCount} bộ thẻ</strong><span>· ${topic.totalCards} thẻ</span></div>
+    <div class="deck-progress"><span style="width:${topic.progressPercent}%"></span><b>${topic.progressPercent}%</b></div>
+    <div class="topic-footer"><span class="${topic.dueCount ? 'due' : 'ready'}">${topic.dueCount ? `↻ ${topic.dueCount} thẻ đến hạn` : '● Không có thẻ đến hạn'}</span><a href="../vocabulary-detail/?deck=${encodeURIComponent(topic.slug)}">Xem bộ thẻ →</a></div>
+  </article>`;
+}
 
 function renderLibrary() {
   const keyword = search.value.trim().toLocaleLowerCase('vi');
   const topics = library.topics.filter(topic => matches(topic, keyword) || descendants(topic).some(child => matches(child, keyword)));
-  content.innerHTML = topics.length ? topics.map(topic => {
-    const children = descendants(topic).filter(child => !keyword || matches(child, keyword));
-    const rootStudy = topic.containsCards ? `<a class="collection-study" href="../flashcard/?deck=${encodeURIComponent(topic.slug)}&title=${encodeURIComponent(topic.title)}">Học thẻ trực tiếp →</a>` : '';
-    return `<section class="collection-card"><div class="collection-intro"><div class="collection-icon">▤</div><div><p class="eyebrow">Chủ đề lớn</p><h2>${esc(topic.title)}</h2><p>${esc(topic.description)}</p>${rootStudy}</div><div class="collection-total"><strong>${topic.totalCards}</strong><span>thẻ</span><b>${children.length} bộ con</b></div><div class="collection-actions"><button data-create-child="${topic.id}">＋ Thêm bộ con</button><button data-import-deck="${topic.id}">⇧ Nhập Excel</button></div></div><div class="section-title"><h2>Các bộ thẻ bên trong</h2><span>${children.length} bộ</span></div><div class="deck-grid">${children.length ? children.map(deckCard).join('') : '<div class="no-result">Chủ đề này chưa có bộ con. Hãy tạo bộ đầu tiên.</div>'}</div></section>`;
-  }).join('') : '<div class="card no-result">Không tìm thấy chủ đề phù hợp.</div>';
+  content.innerHTML = topics.length ? `<div class="topic-grid">${topics.map(topicCard).join('')}</div>` : '<div class="card no-result">Không tìm thấy chủ đề phù hợp.</div>';
 }
 
 function refreshSelects(selectedParent = '') {
@@ -55,7 +55,15 @@ document.querySelector('#createRoot').addEventListener('click', () => openTopic(
 document.querySelector('#openImport').addEventListener('click', () => openImport());
 document.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => document.querySelector(`#${button.dataset.close}`).close()));
 search.addEventListener('input', renderLibrary);
-content.addEventListener('click', event => { const child = event.target.closest('[data-create-child]'); const importer = event.target.closest('[data-import-deck]'); if (child) openTopic(child.dataset.createChild); if (importer) openImport(importer.dataset.importDeck); });
+content.addEventListener('click', async event => {
+  const remove = event.target.closest('[data-delete-topic]');
+  if (!remove) return;
+  const message = `Xóa “${remove.dataset.title}” cùng toàn bộ bộ con và từ vựng bên trong? Lịch sử học sẽ được giữ lại.`;
+  if (!confirm(message)) return;
+  remove.disabled = true;
+  try { await api(`/decks/${remove.dataset.deleteTopic}`, { method: 'DELETE' }); toast('Đã xóa chủ đề'); await load(); }
+  catch (error) { toast(error.message, 'error'); remove.disabled = false; }
+});
 
 document.querySelector('#topicForm').addEventListener('submit', async event => {
   event.preventDefault(); const submit = event.currentTarget.querySelector('.submit'); submit.disabled = true;

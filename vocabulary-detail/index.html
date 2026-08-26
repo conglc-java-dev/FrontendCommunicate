@@ -1,3 +1,32 @@
-<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chi tiết từ · English Daily</title><link rel="stylesheet" href="style.css"></head>
-<body><header class="topbar"><a class="brand" href="../dashboard/"><span class="brand-mark">E</span><span class="brand-name">English Daily</span></a><nav class="nav"><a href="../dashboard/">⌂ Tổng quan</a><a href="../flashcard/">◇ Học từ</a><a class="active" href="../vocabulary-list/">▤ Thư viện</a><a href="../statistics/">↗ Thống kê</a></nav><div class="user-chip"><span class="avatar">L</span><span>Local learner</span></div></header>
-<main class="page detail-page"><a class="back" href="../vocabulary-list/">← Quay lại thư viện</a><div class="page-heading"><div><p class="eyebrow" id="eyebrow">Từ vựng mới</p><h1 id="title">Thêm một từ để học</h1><p class="subtitle">Điền nội dung rõ ràng và dùng một câu ví dụ bạn thường gặp.</p></div></div><form class="card form" id="form"><div class="form-grid"><div class="field wide"><label for="word">Từ hoặc cụm từ *</label><input class="input" id="word" maxlength="120" required placeholder="change"></div><div class="field"><label for="partOfSpeech">Từ loại *</label><select class="input" id="partOfSpeech" required><option value="">Chọn từ loại</option><option>noun</option><option>verb</option><option>adjective</option><option>adverb</option><option>phrase</option><option>preposition</option><option>conjunction</option></select></div><div class="field"><label for="ukIpa">IPA Anh-Anh</label><input class="input" id="ukIpa" maxlength="160" placeholder="/tʃeɪndʒ/"></div><div class="field"><label for="usIpa">IPA Anh-Mỹ</label><input class="input" id="usIpa" maxlength="160" placeholder="/tʃeɪndʒ/"></div><div class="field wide"><label for="meaning">Nghĩa tiếng Việt *</label><textarea class="input" id="meaning" maxlength="500" required placeholder="thay đổi"></textarea></div><div class="field wide"><label for="exampleEnglish">Ví dụ tiếng Anh *</label><textarea class="input" id="exampleEnglish" maxlength="1000" required placeholder="Can I change my order?"></textarea></div><div class="field wide"><label for="exampleVietnamese">Dịch ví dụ *</label><textarea class="input" id="exampleVietnamese" maxlength="1000" required placeholder="Tôi có thể thay đổi đơn hàng của mình không?"></textarea></div></div><div class="form-actions"><a class="btn btn-secondary" href="../vocabulary-list/">Hủy</a><button class="btn btn-primary" type="submit" id="save">Lưu từ vựng</button></div></form><section class="card progress-panel" id="progress" hidden></section></main><script type="module" src="script.js"></script></body></html>
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Chi tiết bộ thẻ · English Daily</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar"><a class="brand" href="../dashboard/"><span class="brand-mark">E</span><span class="brand-name">English Daily</span></a><nav class="nav"><a href="../dashboard/">⌂ Tổng quan</a><a href="../flashcard/">◇ Học từ</a><a class="active" href="../vocabulary-list/">▤ Thư viện</a><a href="../statistics/">↗ Thống kê</a></nav><div class="user-chip"><span class="avatar">L</span><span>Local learner</span></div></header>
+
+<main class="deck-detail" id="detail"><div class="loader"></div></main>
+
+<dialog id="editDialog">
+  <form id="editForm">
+    <div class="dialog-head"><div><p class="eyebrow">Chỉnh sửa thẻ</p><h2 id="editTitle">Sửa từ vựng</h2></div><button class="close" type="button" id="closeEdit">×</button></div>
+    <div class="edit-grid">
+      <div class="field wide"><label for="word">Từ hoặc cụm từ *</label><input class="input" id="word" maxlength="120" required></div>
+      <div class="field"><label for="partOfSpeech">Từ loại *</label><input class="input" id="partOfSpeech" maxlength="40" required></div>
+      <div class="field"><label for="ukIpa">IPA Anh-Anh</label><input class="input" id="ukIpa" maxlength="160"></div>
+      <div class="field"><label for="usIpa">IPA Anh-Mỹ</label><input class="input" id="usIpa" maxlength="160"></div>
+      <div class="field wide"><label for="meaning">Nghĩa tiếng Việt *</label><textarea class="input" id="meaning" maxlength="500" required></textarea></div>
+      <div class="field wide"><label for="exampleEnglish">Ví dụ tiếng Anh *</label><textarea class="input" id="exampleEnglish" maxlength="1000" required></textarea></div>
+      <div class="field wide"><label for="exampleVietnamese">Dịch ví dụ *</label><textarea class="input" id="exampleVietnamese" maxlength="1000" required></textarea></div>
+    </div>
+    <button class="btn btn-primary save-word" id="saveWord" type="submit">Lưu thay đổi</button>
+  </form>
+</dialog>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
