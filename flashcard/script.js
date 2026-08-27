@@ -15,6 +15,8 @@ let cards = [];
 let index = 0;
 let showingAnswer = false;
 let answerUnlocked = false;
+let overviewCards = [];
+let countdownTimer;
 const scores = { FORGOT: 0, HARD: 0, REMEMBERED: 0, TOO_EASY: 0 };
 
 function esc(value) {
@@ -35,33 +37,107 @@ document.querySelector('#exitStudy').addEventListener('click', () => {
   else location.href = '../flashcard/';
 });
 
-async function showDueOverview() {
+function cardState(card, now = Date.now()) {
+  if (card.newWord) return 'new';
+  if (card.nextReviewAt && new Date(card.nextReviewAt).getTime() <= now) return 'due';
+  return 'upcoming';
+}
+
+function remainingText(nextReviewAt) {
+  const remaining = new Date(nextReviewAt).getTime() - Date.now();
+  if (remaining <= 0) return 'Đến hạn';
+  const minutes = Math.ceil(remaining / 60000);
+  if (minutes < 60) return `Còn ${minutes} phút`;
+  const hours = Math.floor(minutes / 60);
+  const extraMinutes = minutes % 60;
+  if (hours < 24) return `Còn ${hours} giờ${extraMinutes ? ` ${extraMinutes} phút` : ''}`;
+  const days = Math.floor(hours / 24);
+  const extraHours = hours % 24;
+  if (days < 30) return `Còn ${days} ngày${extraHours ? ` ${extraHours} giờ` : ''}`;
+  const months = Math.floor(days / 30);
+  const extraDays = days % 30;
+  return `Còn ${months} tháng${extraDays ? ` ${extraDays} ngày` : ''}`;
+}
+
+function reviewDelayText(seconds) {
+  if (seconds == null) return '—';
+  if (seconds < 3600) return `${Math.round(seconds / 60)} phút`;
+  if (seconds < 86400) return `${Math.round(seconds / 3600)} giờ`;
+  const days = seconds / 86400;
+  return `${Number.isInteger(days) ? days : days.toFixed(1)} ngày`;
+}
+
+function updateCountdowns() {
+  document.querySelectorAll('[data-next-review]').forEach(badge => {
+    const text = remainingText(badge.dataset.nextReview);
+    badge.textContent = text;
+    if (text === 'Đến hạn') {
+      badge.classList.remove('upcoming');
+      badge.classList.add('due');
+    }
+  });
+}
+
+function renderOverviewList(filter = 'all') {
+  const list = document.querySelector('#allVocabularyList');
+  if (!list) return;
+  const visible = filter === 'all' ? overviewCards : overviewCards.filter(card => cardState(card) === filter);
+  list.innerHTML = visible.length ? visible.map((card, position) => {
+    const state = cardState(card);
+    const badge = state === 'new'
+      ? '<span class="schedule-badge new">Từ mới</span>'
+      : state === 'due'
+        ? '<span class="schedule-badge due">Đến hạn</span>'
+        : `<span class="schedule-badge upcoming" data-next-review="${esc(card.nextReviewAt)}">${remainingText(card.nextReviewAt)}</span>`;
+    return `<article>
+      <span class="due-number">${String(position + 1).padStart(2, '0')}</span>
+      <div><strong>${esc(card.word)}</strong><small>${esc(card.partOfSpeech)} · ${esc(card.ukIpa || 'chưa có IPA')}</small></div>
+      <p>${esc(card.meaning)}</p>${badge}
+    </article>`;
+  }).join('') : '<div class="empty-filter">Không có từ vựng trong nhóm này.</div>';
+  updateCountdowns();
+}
+
+async function showAllOverview() {
   studyTop.classList.add('hidden');
   area.innerHTML = '<div class="loader"></div>';
   try {
-    const dueCards = await api('/learning/due?direction=MIXED&limit=100');
-    if (!dueCards.length) {
+    overviewCards = await api('/learning/all?direction=MIXED');
+    if (!overviewCards.length) {
       area.innerHTML = `<section class="due-hero card all-done">
-        <div class="due-icon">✓</div><p class="eyebrow">Lịch học hôm nay</p>
-        <h1>Bạn chưa có từ đến hạn</h1>
-        <p>Hãy chọn một bộ thẻ trong thư viện để học từ mới. Những từ đã học sẽ tự quay lại đây đúng lịch ôn.</p>
+        <div class="due-icon">◇</div><p class="eyebrow">Kho từ của bạn</p>
+        <h1>Chưa có từ vựng</h1>
+        <p>Hãy chọn hoặc nhập một bộ thẻ trong thư viện để bắt đầu học.</p>
         <a class="btn btn-primary" href="../vocabulary-list/">Khám phá thư viện →</a>
       </section>`;
       return;
     }
-    area.innerHTML = `<section class="due-heading">
-      <div><p class="eyebrow">Lịch ôn tập</p><h1>Từ cần học hôm nay</h1><p>${dueCards.length} từ đã đến hạn. Ôn trước khi học thêm từ mới nhé.</p></div>
-      <button class="btn btn-primary" id="startDue">Bắt đầu học ${dueCards.length} từ →</button>
+    const counts = overviewCards.reduce((result, card) => {
+      result[cardState(card)]++;
+      return result;
+    }, { due: 0, new: 0, upcoming: 0 });
+    area.innerHTML = `<section class="all-hero card">
+      <div class="all-copy"><p class="eyebrow">Kho từ của bạn</p><h1>Học tất cả từ vựng của tôi</h1>
+      <p>Xem toàn bộ từ đã lưu. Từ đến hạn được ưu tiên trước, sau đó là từ mới và các từ đang chờ lịch ôn.</p>
+      <button class="btn btn-primary" id="startAll">◇ Bắt đầu học ${overviewCards.length} từ →</button></div>
+      <div class="learning-stats"><div class="due-stat"><strong>${counts.due}</strong><span>Đến hạn ôn</span></div><div class="new-stat"><strong>${counts.new}</strong><span>Từ mới</span></div><div class="upcoming-stat"><strong>${counts.upcoming}</strong><span>Chưa đến hạn</span></div><div><strong>${overviewCards.length}</strong><span>Tổng cộng</span></div></div>
     </section>
-    <section class="due-list card">${dueCards.map((card, position) => `<article>
-      <span class="due-number">${String(position + 1).padStart(2, '0')}</span>
-      <div><strong>${esc(card.word)}</strong><small>${esc(card.partOfSpeech)} · ${esc(card.ukIpa || 'chưa có IPA')}</small></div>
-      <p>${esc(card.meaning)}</p><span class="due-badge">Đến hạn</span>
-    </article>`).join('')}</section>`;
-    document.querySelector('#startDue').addEventListener('click', () => {
-      sessionType = 'due';
+    <section class="due-heading all-heading"><div><p class="eyebrow">Danh sách từ vựng</p><h2>Tất cả từ</h2></div>
+      <div class="list-filters"><button class="active" data-filter="all">Tất cả</button><button data-filter="due">Đến hạn</button><button data-filter="upcoming">Chưa đến hạn</button><button data-filter="new">Từ mới</button></div>
+    </section>
+    <section class="due-list card" id="allVocabularyList"></section>`;
+    renderOverviewList();
+    document.querySelector('#startAll').addEventListener('click', () => {
+      sessionType = 'all';
       loadSession();
     });
+    document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => {
+      document.querySelector('[data-filter].active')?.classList.remove('active');
+      button.classList.add('active');
+      renderOverviewList(button.dataset.filter);
+    }));
+    clearInterval(countdownTimer);
+    countdownTimer = setInterval(updateCountdowns, 30000);
   } catch (error) {
     area.innerHTML = `<div class="card empty">${esc(error.message)}</div>`;
     toast(error.message, 'error');
@@ -75,8 +151,9 @@ async function loadSession() {
   showingAnswer = false;
   answerUnlocked = false;
   Object.keys(scores).forEach(key => scores[key] = 0);
-  const endpoint = sessionType === 'due'
-    ? `/learning/due?direction=${mode}&limit=100`
+  clearInterval(countdownTimer);
+  const endpoint = sessionType === 'all'
+    ? `/learning/all?direction=${mode}`
     : `/learning/session?direction=${mode}&limit=40&deck=${encodeURIComponent(deckSlug)}`;
   try {
     cards = await api(endpoint);
@@ -119,17 +196,18 @@ function answerFace(card) {
 
 function renderStudyCard() {
   const card = cards[index];
-  const context = sessionType === 'deck' ? deckTitle : 'Ôn tập đến hạn';
+  const context = sessionType === 'deck' ? deckTitle : 'Tất cả từ vựng';
+  const delays = card.reviewAfterSeconds || {};
   area.innerHTML = `<p class="session-name">${esc(context)}</p>
     <article class="card flashcard ${showingAnswer ? 'is-answer' : ''}" id="flashcard">
       ${showingAnswer ? answerFace(card) : questionFace(card)}
     </article>
     <button class="btn btn-secondary reveal" id="flipCard">↻ ${showingAnswer ? 'Quay lại câu hỏi' : 'Lật thẻ xem đáp án'}</button>
     ${answerUnlocked ? `<div class="ratings">
-      <button class="rating" data-rating="FORGOT">1 · Quên<small>Ôn lại sau 10 phút</small></button>
-      <button class="rating" data-rating="HARD">2 · Khó<small>Đi chậm hơn</small></button>
-      <button class="rating" data-rating="REMEMBERED">3 · Đã nhớ<small>Đúng lịch</small></button>
-      <button class="rating" data-rating="TOO_EASY">4 · Quá dễ<small>Tiến nhanh hơn</small></button>
+      <button class="rating" data-rating="FORGOT"><span>1 · Học lại</span><strong>${reviewDelayText(delays.FORGOT)}</strong></button>
+      <button class="rating" data-rating="HARD"><span>2 · Khó</span><strong>${reviewDelayText(delays.HARD)}</strong></button>
+      <button class="rating" data-rating="REMEMBERED"><span>3 · Tốt</span><strong>${reviewDelayText(delays.REMEMBERED)}</strong></button>
+      <button class="rating" data-rating="TOO_EASY"><span>4 · Dễ</span><strong>${reviewDelayText(delays.TOO_EASY)}</strong></button>
     </div>` : ''}
     <p class="keyboard">Phím Space lật qua lại · Phím 1–4 đánh giá</p>`;
   document.querySelector('#flashcard').addEventListener('click', toggleCard);
@@ -184,4 +262,4 @@ document.addEventListener('keydown', event => {
 });
 
 if (deckSlug) await loadSession();
-else await showDueOverview();
+else await showAllOverview();
