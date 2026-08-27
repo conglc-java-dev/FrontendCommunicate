@@ -1,4 +1,6 @@
-export const API_BASE = window.ENGLISH_DAILY_API || 'http://localhost:8080/api';
+import { API_BASE_URL } from './config.js';
+
+export const API_BASE = API_BASE_URL;
 
 export async function api(path, options = {}) {
   const config = { ...options, headers: { ...(options.headers || {}) } };
@@ -7,7 +9,7 @@ export async function api(path, options = {}) {
   try {
     response = await fetch(`${API_BASE}${path}`, config);
   } catch {
-    throw new Error('Không thể kết nối máy chủ. Hãy chắc chắn backend đang chạy ở cổng 8080.');
+    throw new Error('Không thể kết nối máy chủ. Vui lòng thử lại sau.');
   }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
